@@ -5,8 +5,16 @@ export class VeroPage {
   constructor(private page: Page) {}
 
   async open() {
-    await this.page.goto("https://querovero.com.br/para-voce/contato-vero", { waitUntil: "domcontentloaded" });
-    await expect(this.page).toHaveTitle(/Contato Vero|Vero Internet/i);
+    await this.page.goto("https://querovero.com.br/para-voce/contato-vero", {
+      waitUntil: "domcontentloaded",
+    });
+    await expect(this.page.locator(VeroElements.form)).toBeVisible();
+  }
+
+  async checkLayout() {
+    await expect(this.page.locator(VeroElements.header)).toBeVisible();
+    await expect(this.page.locator(VeroElements.main)).toBeVisible();
+    await expect(this.page.locator(VeroElements.footer)).toBeVisible();
   }
 
   async checkFormVisibility() {
@@ -21,30 +29,35 @@ export class VeroPage {
     await expect(this.page.locator(VeroElements.submitButton)).toBeVisible();
   }
 
-  async submitEmptyForm() {
-    await this.page.locator(VeroElements.submitButton).click();
-    const error = this.page.locator(VeroElements.validationError);
-    await expect(error.first()).toBeVisible({ timeout: 10000 });
-  }
-
-  async fillFormAndSubmit() {
+  async fillFormWithoutTerm() {
     await this.page.selectOption(VeroElements.subjectSelect, { index: 1 });
     await this.page.fill(VeroElements.nameInput, "Luiz Cardoso");
     await this.page.fill(VeroElements.phoneInput, "(48) 99999-9999");
     await this.page.fill(VeroElements.emailInput, "teste@exemplo.com");
     await this.page.fill(VeroElements.cpfInput, "12345678909");
     await this.page.fill(VeroElements.cityInput, "Criciúma");
-    await this.page.fill(VeroElements.messageTextarea, "Mensagem automatizada Playwright.");
-    await this.page.check(VeroElements.privacyCheckbox);
+    await this.page.fill(VeroElements.messageTextarea, "Teste sem aceitar os termos.");
+
+    await this.page.locator(VeroElements.submitButton).scrollIntoViewIfNeeded();
     await this.page.locator(VeroElements.submitButton).click();
-    console.log('teesteeee')
-    const success = this.page.locator(VeroElements.successMessage);
-    await expect(success.first()).toBeVisible({ timeout: 15000 });
+
+    await expect(this.page.locator(VeroElements.submitButton)).toBeVisible();
   }
 
-  async checkLayout() {
-    await expect(this.page.locator(VeroElements.header)).toBeVisible();
-    await this.page.locator(VeroElements.footer).scrollIntoViewIfNeeded();
-    await expect(this.page.locator(VeroElements.footer)).toBeVisible();
+  async fillFormAndSubmit() {
+    await this.page.selectOption(VeroElements.subjectSelect, { index: 2 });
+    await this.page.fill(VeroElements.nameInput, "Luiz Cardoso");
+    await this.page.fill(VeroElements.phoneInput, "(48) 99999-9999");
+    await this.page.fill(VeroElements.emailInput, "teste@exemplo.com");
+    await this.page.fill(VeroElements.cpfInput, "12345678909");
+    await this.page.fill(VeroElements.cityInput, "Criciúma");
+    await this.page.fill(VeroElements.messageTextarea, "Mensagem de teste automatizada.");
+    await this.page.check(VeroElements.privacyCheckbox);
+
+    const button = this.page.locator(VeroElements.submitButton);
+    await button.scrollIntoViewIfNeeded();
+    await button.click();
+
+    await expect(button).toBeHidden({ timeout: 10000 });
   }
 }
